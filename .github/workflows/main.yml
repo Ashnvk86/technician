@@ -17,6 +17,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          clean: true
+          ref: ${{ github.ref }}
+
+      - name: Validate repository state
+        run: |
+          set -e
+          echo "Current branch: $(git branch --show-current)"
+          echo "Current commit: $(git rev-parse HEAD)"
+          echo ""
+          echo "Validating tracked files..."
+          if git ls-files | grep -q "lib/widgets/working_hours_widget.dart"; then
+            echo "✓ working_hours_widget.dart is tracked"
+          else
+            echo "✗ MISSING: working_hours_widget.dart not in git tracking"
+            echo "Tracked files in lib/widgets/:"
+            git ls-files -- lib/widgets/ || echo "No files found"
+            exit 1
+          fi
 
       - name: Remove conflicting Xcode base configs
         run: |
