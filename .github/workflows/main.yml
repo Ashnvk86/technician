@@ -90,7 +90,8 @@ jobs:
       - name: Clear pub cache selectively
         run: |
           set -e
-          rm -rf ~/.pub-cache/hosted/pub.dev/geocoding*
+          rm -rf ~/.pub-cache/hosted/pub.dev/archive*
+          rm -rf ~/.pub-cache/hosted/pub.dev/args*
 
       - name: Install Dart/Flutter dependencies
         working-directory: ${{ env.APP_DIR }}
