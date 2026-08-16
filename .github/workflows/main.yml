@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Remove conflicting Xcode base configs
         run: |
@@ -117,6 +119,29 @@ jobs:
           rm -rf .dart_tool/
           flutter clean
           flutter pub get
+
+      - name: Verify required files exist
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          set -e
+          echo "Checking for required Flutter files..."
+          if [ ! -f "lib/widgets/working_hours_widget.dart" ]; then
+            echo "ERROR: lib/widgets/working_hours_widget.dart not found!"
+            echo "Current directory: $(pwd)"
+            echo "Contents of lib/:"
+            ls -la lib/ || echo "lib/ directory not found"
+            echo "Contents of lib/widgets/:"
+            ls -la lib/widgets/ || echo "lib/widgets/ directory not found"
+            echo "Search for working_hours files:"
+            find . -name "*working_hours*" -type f || true
+            exit 1
+          fi
+          echo "✓ lib/widgets/working_hours_widget.dart found"
+          if ! grep -q "class WorkingHoursWidget" "lib/widgets/working_hours_widget.dart"; then
+            echo "ERROR: WorkingHoursWidget class not found in file!"
+            exit 1
+          fi
+          echo "✓ WorkingHoursWidget class found"
 
       - name: Install CocoaPods
         run: |
