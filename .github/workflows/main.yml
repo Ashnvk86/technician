@@ -87,10 +87,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-
 
-      - name: Clear pub cache to force fresh downloads
+      - name: Clear pub cache selectively
         run: |
           set -e
-          rm -rf ~/.pub-cache/hosted/pub.dev/*
+          rm -rf ~/.pub-cache/hosted/pub.dev/geocoding*
 
       - name: Install Dart/Flutter dependencies
         working-directory: ${{ env.APP_DIR }}
@@ -107,7 +107,6 @@ jobs:
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
           rm -rf ~/Library/Caches/CocoaPods
           rm -rf ios/Pods ios/Podfile.lock ios/.symlinks ios/Runner.xcworkspace
-          rm -rf ios/Flutter/Flutter.podspec ios/Flutter/Flutter.framework
           rm -rf build/
           flutter clean
           flutter pub get
@@ -125,6 +124,14 @@ jobs:
           export PATH="$HOME/flutter/bin:$PATH"
           pod repo update
           pod install --repo-update --no-ansi
+
+      - name: Generate Flutter iOS framework
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          set -e
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter build ios --no-codesign --simulator -v 2>&1 | head -200 || true
+          flutter precache --ios
 
       - name: Verify iOS project exists
         run: |
