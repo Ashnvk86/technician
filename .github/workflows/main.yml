@@ -99,7 +99,7 @@ jobs:
           rm -f pubspec.lock
           flutter pub get
 
-      - name: Clean and regenerate iOS with fresh pod workspace
+      - name: Clean build artifacts and CocoaPods
         working-directory: ${{ env.APP_DIR }}
         run: |
           set -e
@@ -110,45 +110,19 @@ jobs:
           rm -rf build/
           flutter clean
           flutter pub get
-          flutter precache --ios
 
       - name: Install CocoaPods
         run: |
           set -e
           sudo gem install cocoapods --no-document
 
-      - name: Refresh CocoaPods specs and reinstall iOS pods
+      - name: Setup iOS pods
         working-directory: ${{ env.APP_DIR }}/ios
         run: |
           set -e
           export PATH="$HOME/flutter/bin:$PATH"
           pod repo update
           pod install --repo-update --no-ansi
-
-      - name: Generate Flutter iOS framework
-        working-directory: ${{ env.APP_DIR }}
-        run: |
-          set -e
-          export PATH="$HOME/flutter/bin:$PATH"
-          flutter build ios --no-codesign --simulator -v 2>&1 | head -200 || true
-          flutter precache --ios
-
-      - name: Verify iOS project exists
-        run: |
-          ios_dir="${{ env.APP_DIR }}/ios"
-          echo "Listing ios dir: '$ios_dir'"
-          if [ ! -d "$ios_dir" ]; then
-            echo "No ios/ directory at $ios_dir" >&2
-            exit 1
-          fi
-          ls -la "$ios_dir"
-          find "$ios_dir" -maxdepth 1 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
-
-      - name: Clear Xcode module cache
-        run: |
-          set -e
-          rm -rf ~/Library/Developer/Xcode/DerivedData/*/ModuleCache*
-          rm -rf ~/Library/Developer/Xcode/DerivedData/*/Build/Intermediates.noindex/
 
       - name: Build iOS app for simulator (no codesign)
         working-directory: ${{ env.APP_DIR }}
